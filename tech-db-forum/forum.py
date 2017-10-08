@@ -1,5 +1,6 @@
 import json
 import falcon
+import dao.forumDAO
 
 
 class ForumCreate(object):

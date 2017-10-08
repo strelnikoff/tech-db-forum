@@ -7,7 +7,7 @@ class ForumDAO:
     def create_forum(self, forum):
         pass
 
-    def create_slug(self, slug, thread):
+    def create_thread(self, slug, thread):
         pass
 
     def get_forum_details(self, slug):
