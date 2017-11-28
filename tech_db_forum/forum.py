@@ -1,6 +1,6 @@
 import json
 import falcon
-import dao.forumDAO
+import tech_db_forum.dao.forumDAO as forumDAO
 
 
 class ForumCreate(object):

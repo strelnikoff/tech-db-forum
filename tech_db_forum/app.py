@@ -1,9 +1,9 @@
 import falcon
-import forum
-import post
-import service
-import thread
-import user
+import tech_db_forum.forum as forum
+import tech_db_forum.post as post
+import tech_db_forum.service as service
+import tech_db_forum.thread as thread
+import tech_db_forum.user as user
 
 
 api = application = falcon.API()
