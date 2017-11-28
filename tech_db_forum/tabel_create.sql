@@ -33,7 +33,7 @@ CREATE TABLE posts (
   isEditer BOOLEAN DEFAULT FALSE,
   message CHARACTER VARYING,
   parent INTEGER DEFAULT 0,
-  tread INTEGER
+  thread INTEGER
 );
 
 CREATE TABLE votes (
@@ -43,18 +43,8 @@ CREATE TABLE votes (
   thread CHARACTER VARYING
 );
 
+SELECT * FROM users;
+
+UPDATE users SET about = 'i update it' WHERE nickname='oleg';
+
 TRUNCATE TABLE users, posts, threads, votes, forums;
-SELECT COUNT(*) FROM users;
-
-INSERT INTO users (nickname, about, email, fullname) VALUES ('oleg', 'about me', 'oleg@mail.ru', 'Full Oleg');
-INSERT INTO users VALUES ("oleg", "about me", "oleg@mail.ru", "Full Oleg");
-SELECT * FROM users WHERE email = "oleg";
-SELECT * FROM votes WHERE id=1 AND t;
-
-SELECT * FROM test WHERE test_id =1;
-CREATE TABLE test2 (
-  test_id CHARACTER(5)
-);
-DROP TABLE test;
-INSERT INTO test2 VALUES ('w');
-SELECT * FROM users WHERE nickname != 'oleg';

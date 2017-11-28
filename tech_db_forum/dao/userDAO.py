@@ -50,7 +50,8 @@ class UserDAO:
     def check_profile(self, profile):
         return profile
 
-    def user_from_table(self, t):
+    @staticmethod
+    def user_from_table(t):
         return {
             "about":t["about"],
             "email":t["email"],
