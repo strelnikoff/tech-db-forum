@@ -2,6 +2,7 @@ DROP TABLE forums;
 DROP TABLE users;
 DROP TABLE threads;
 DROP TABLE posts;
+DROP TABLE votes;
 
 CREATE TABLE forums (
   slug CHARACTER VARYING PRIMARY KEY,
@@ -22,7 +23,9 @@ CREATE TABLE threads (
   forum CHARACTER VARYING,
   id INTEGER PRIMARY KEY,
   message TEXT,
-  slug CHARACTER VARYING
+  slug CHARACTER VARYING,
+  title CHARACTER VARYING,
+  votes INTEGER
 );
 
 CREATE TABLE posts (
@@ -40,7 +43,7 @@ CREATE TABLE votes (
   id INTEGER PRIMARY KEY,
   nickname CHARACTER VARYING,
   voice INTEGER,
-  thread CHARACTER VARYING
+  thread INTEGER
 );
 
 SELECT * FROM users;

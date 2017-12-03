@@ -29,14 +29,13 @@ class PostDAO:
 
     def edit_post(self, post_id, post):
         post = self.check_post(post)
-        upd_rows=self.db.query("UPDATE posts SET nickname='{}', created='{}', forum='{}', isediter=TRUE, "
-                               "message='{}', parent='{}',thread='{}' WHERE id={}".format(
-            post["nickname"], post["created"], post["forum"], post["message"], post["parent"], post["thread"], post_id)
-        )
+        upd_rows = self.db.query("UPDATE posts SET nickname='{}', created='{}', forum='{}', isediter=TRUE, message='{}',\
+                                  parent='{}',thread='{}' WHERE id={}".format(post["nickname"], post["created"],
+                                                                              post["forum"], post["message"],
+                                                                              post["parent"], post["thread"], post_id))
         if upd_rows == 0:
             return {"message": "Can't find post"}, falcon.HTTP_404
         return post, falcon.HTTP_200
-
 
     def create_posts(self, slug_or_id, posts):
         pass
@@ -46,7 +45,7 @@ class PostDAO:
 
     @staticmethod
     def post_from_table(self, t):
-        return  {
+        return {
             "author": t["nickname"],
             "created": t["created"],
             "forum": t["forum"],

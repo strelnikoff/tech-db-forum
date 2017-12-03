@@ -21,5 +21,3 @@ class ServiceDAO:
             "user": self.db.query("SELECT COUNT(*) FROM users")[0][0],
         }
         return result, falcon.HTTP_200
-
-    
