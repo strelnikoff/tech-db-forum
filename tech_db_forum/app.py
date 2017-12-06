@@ -12,7 +12,7 @@ api.add_route('/forum/create', forum.ForumCreate())  # OK
 api.add_route('/forum/{slug}/create', forum.ThreadCreate())  # OK
 api.add_route('/forum/{slug}/details', forum.Details())  # OK
 api.add_route('/forum/{slug}/threads', forum.Threads())  # OK
-api.add_route('/forum/{slug}/details', forum.Users())  # OK
+api.add_route('/forum/{slug}/users', forum.Users())  # OK
 
 api.add_route('/post/{pid:int}/details', post.Post())  # OK
 

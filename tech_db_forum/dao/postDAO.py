@@ -3,6 +3,7 @@ import postgresql
 import falcon
 import tech_db_forum.forum as forum
 import tech_db_forum.user as user
+from pytz import timezone
 
 
 class PostDAO:
@@ -16,26 +17,28 @@ class PostDAO:
         if len(post)==0:
             return {"message": "Post not found"}, falcon.HTTP_404
         post = {"post": self.post_from_table(post[0])}
-        for i in related:
-            if i=="author":
-                user_dao = user.userDAO.UserDAO()
-                post["author"] = user_dao.get_user(post["post"]["author"])
-            if i=="forum":
-                forum_dao = forum.forumDAO.ForumDAO()
-                post["forum"] = forum_dao.forum_info(post["post"]["forum"])
-            if i=="thread":
-                pass
+        if related:
+            for i in related:
+                if i=="author":
+                    user_dao = user.userDAO.UserDAO()
+                    post["author"] = user_dao.get_user(post["post"]["author"])
+                if i=="forum":
+                    forum_dao = forum.forumDAO.ForumDAO()
+                    post["forum"] = forum_dao.forum_info(post["post"]["forum"])
+                if i=="thread":
+                    pass
         return post, falcon.HTTP_200
 
     def edit_post(self, post_id, post):
         post = self.check_post(post)
-        upd_rows = self.db.query("UPDATE posts SET nickname='{}', created='{}', forum='{}', isediter=TRUE, message='{}',\
-                                  parent='{}',thread='{}' WHERE id={}".format(post["nickname"], post["created"],
-                                                                              post["forum"], post["message"],
-                                                                              post["parent"], post["thread"], post_id))
+        # upd_rows = self.db.query("UPDATE posts SET nickname='{}', created='{}', forum='{}', isediter=TRUE, message='{}',\
+        #                           parent='{}',thread='{}' WHERE id={}".format(post["author"], post["created"],
+        #                                                                       post["forum"], post["message"],
+        #                                                                       post["parent"], post["thread"], post_id))
+        upd_rows = self.db.query("UPDATE posts SET isedited=TRUE, message='{}' WHERE id={}".format( post["message"], post_id))
         if upd_rows == 0:
             return {"message": "Can't find post"}, falcon.HTTP_404
-        return post, falcon.HTTP_200
+        return self.post_from_table(self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))[0]), falcon.HTTP_200
 
     def create_posts(self, slug_or_id, posts):
         pass
@@ -44,13 +47,13 @@ class PostDAO:
         return post
 
     @staticmethod
-    def post_from_table(self, t):
+    def post_from_table(t):
         return {
             "author": t["nickname"],
-            "created": t["created"],
+            "created": t["created"].astimezone(timezone('Europe/Moscow')).isoformat(),
             "forum": t["forum"],
             "id": t["id"],
-            "isEdited": t["isEdited"],
+            "isEdited": t["isedited"],
             "message": t["message"],
             "parent": t["parent"],
             "thread": t["thread"]

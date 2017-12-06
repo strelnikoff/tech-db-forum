@@ -1,6 +1,10 @@
 import postgresql
 import falcon
 import tech_db_forum.settings as settings
+import tech_db_forum.dao.postDAO as postDAO
+import datetime
+from dateutil.tz import tzlocal
+from pytz import timezone
 
 
 class ThreadDAO:
@@ -17,11 +21,11 @@ class ThreadDAO:
             result = self.db.query("SELECT * FROM threads WHERE id={}".format(thread_id))
             if len(result)== 0:
                 return {"message": "Can't find thread"}, falcon.HTTP_404
-            return self.thread_from_table(result), falcon.HTTP_200
-        result = self.db.query("SELECT * FROM threads WHERE slug={}".format(slug_or_id))
+            return self.thread_from_table(result[0]), falcon.HTTP_200
+        result = self.db.query("SELECT * FROM threads WHERE lower(slug)=lower('{}')".format(slug_or_id))
         if len(result) == 0:
             return {"message": "Can't find thread"}, falcon.HTTP_404
-        return self.thread_from_table(result), falcon.HTTP_200
+        return self.thread_from_table(result[0]), falcon.HTTP_200
 
     def get_posts(self, slug_or_id, limit, since, sort, desc):
         if limit is not None:
@@ -30,6 +34,7 @@ class ThreadDAO:
             limit = ""
         pass
 
+    # Надо что то сделать c кривым ответом
     def create_posts(self, slug_or_id, posts):
         try:
             thread = self.check_thread_id(int(slug_or_id))
@@ -38,15 +43,38 @@ class ThreadDAO:
         if thread is None:
             return {"message": "Can't find thread"}, falcon.HTTP_404
         for p in posts:
-            if self.get_parent_thread(p["parent"]) != thread:
+            if p.get("parent"):
+                self.get_parent_thread(p.get("parent")) != thread
                 return {"message": "Parent thread error"}, falcon.HTTP_409
+        created_time = datetime.datetime.now(tzlocal()).isoformat()
+        #print(created_time)
+        result_posts = []
+        for p in posts:
+            query = "INSERT INTO posts (thread, nickname, forum, created"
+            values = "VALUES ({}, '{}', '{}', '{}'".format(thread["id"], p["author"], thread["forum"],created_time)
+            if p.get("message"):
+                query += ", message"
+                values += ", '{}'".format(p.get("message"))
+            if p.get("parent"):
+                query += ", parent"
+                values += ", {}".format(p.get("parent"))
+            query = query + ")" + values + ")"
+            self.db.query(query)
+        posts = self.db.query("SELECT * FROM posts WHERE created = '{}' AND forum = '{}' AND thread = {}"
+                          .format(created_time, thread["forum"], thread["id"]))
+        #print("SELECT * FROM posts WHERE created = '{}' AND forum = '{}' AND thread = {}"
+        #                  .format(created_time, thread["forum"], thread["id"]))
+        for p in posts:
+            #print(p["created"])
+            result_posts.append(postDAO.PostDAO.post_from_table(p))
+        return result_posts, falcon.HTTP_201
 
 
     def get_parent_thread(self, parent_id):
-        result = self.db.query("SELECT thread FROM posts WHERE id = {}".format(parent_id))
+        result = self.db.query("SELECT forum FROM posts WHERE id = {}".format(parent_id))
         if len(result) == 0:
             return None
-        return result["forum"]
+        return result[0]["forum"]
 
     def edit_thread(self, slug_or_id, thread):
         try:
@@ -77,33 +105,33 @@ class ThreadDAO:
         except ValueError:
             thread = self.get_thread_by_slug(slug_or_id)
         if thread is None:
-            return {"message": "Can't find thread"}
+            return {"message": "Can't find thread"}, falcon.HTTP_404
         vote_last = self.get_vote(thread["id"], vote["nickname"])
         if vote_last is None:
             self.db.query("INSERT INTO votes (nickname, voice, thread) VALUES ('{}', {}, {})".format(
                 vote["nickname"], vote["voice"], thread["id"]
             ))
-            self.db.query("UPDATE threads SET (votes) VALUE (votes+({})) WHERE id = {}".format(vote, thread["id"]))
+            self.db.query("UPDATE threads SET votes = votes+({}) WHERE id = {}".format(vote["voice"], thread["id"]))
             thread["votes"] = thread["votes"] + vote["voice"]
             return thread, falcon.HTTP_200
         else:
-            self.db.query("UPDATE votes SET (voice) VALUE ({})".format(int(vote["voice"])))
-            self.db.query("UPDATE threads SET (votes) VALUE (votes+({})-({})) WHERE id = {}".format(
-                vote["voice"], vote_last["voice"], thread["id"]))
-            thread["votes"] = thread["votes"] - vote_last["voice"] + vote["voice"]
+            self.db.query("UPDATE votes SET voice = {}".format(int(vote["voice"])))
+            self.db.query("UPDATE threads SET votes = votes+({})-({}) WHERE id = {}".format(
+                vote["voice"], vote_last[0]["voice"], thread["id"]))
+            thread["votes"] = thread["votes"] - vote_last[0]["voice"] + vote["voice"]
             return thread, falcon.HTTP_200
 
     def get_thread_by_slug(self, slug):
-        thread = self.db.query("SELECT * FROM threads WHERE slug = '{}'".format(slug))
+        thread = self.db.query("SELECT * FROM threads WHERE lower(slug) = lower('{}')".format(slug))
         if len(thread) == 0:
             return None
-        return self.thread_from_table(thread)
+        return self.thread_from_table(thread[0])
 
     def check_thread_id(self, thread_id):
         thread = self.db.query("SELECT * FROM threads WHERE id = '{}'".format(thread_id))
         if len(thread) == 0:
             return None
-        return self.thread_from_table(thread)
+        return self.thread_from_table(thread[0])
 
     def get_vote(self, thread_id, nickname):
         vote = self.db.query("SELECT * FROM votes WHERE thread = {} AND nickname = '{}'".format(thread_id, nickname))
@@ -123,14 +151,13 @@ class ThreadDAO:
     def thread_from_table(t):
         return {
             "author": t["nickname"],
-            "created": t["created"],
+            "created": t["created"].isoformat(),
             "forum": t["forum"],
             "id": t["id"],
             "message": t["message"],
             "slug": t["slug"],
             "title": t["title"],
-            "votes": 0
-            # "votes": t["votes"]
+            "votes": t["votes"]
         }
 
     @staticmethod
