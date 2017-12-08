@@ -53,7 +53,11 @@ class Details(object):
 
 class Posts(object):
     def on_get(self, req, resp, tid):
-        pass
+        thread_dao = threadDAO.ThreadDAO()
+        resp_body, resp_status = thread_dao.get_posts(tid, req.get_param("limit"), req.get_param("since"),
+                                                      req.get_param("sort"),  req.get_param("desc"))
+        resp.body = json.dumps(resp_body)
+        resp.status = resp_status
 
 
 class Vote(object):

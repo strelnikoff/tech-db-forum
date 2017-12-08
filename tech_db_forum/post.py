@@ -25,10 +25,6 @@ class Post(object):
 
     def on_get(self, req, resp, pid):
         post_dao = postDAO.PostDAO()
-        try:
-            doc = json.loads(req.get_param("related").decode('utf-8'))
-        except (AttributeError, ValueError, UnicodeDecodeError):
-            doc = None
-        resp_body, resp_status = post_dao.get_details(pid, doc)
+        resp_body, resp_status = post_dao.get_details(pid, req.get_param("related"))
         resp.body = json.dumps(resp_body)
         resp.status = resp_status
