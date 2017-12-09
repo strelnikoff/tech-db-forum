@@ -9,6 +9,9 @@ class ServiceDAO:
         db_settings = settings.DatabaseSettings()
         self.db = postgresql.open(db_settings.get_command())
 
+    def __del__(self):
+        self.db.close()
+
     def clear(self):
         self.db.query("TRUNCATE TABLE users, posts, threads, votes, forums")
         return falcon.HTTP_200

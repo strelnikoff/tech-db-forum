@@ -13,6 +13,9 @@ class PostDAO:
         db_settings = settings.DatabaseSettings()
         self.db = postgresql.open(db_settings.get_command())
 
+    def __del__(self):
+        self.db.close()
+
     def get_details(self, post_id, related=[]):
         post = self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))
         if len(post)==0:
@@ -37,14 +40,14 @@ class PostDAO:
         post = self.check_post(post)
         upd_rows = None
         if len(post)!=0:
-            upd_rows = self.db.query("UPDATE posts SET isedited=TRUE, message='{}' WHERE id={} AND message != '{}'".format( post["message"], post_id, post["message"]))
+            upd_rows = self.db.query("UPDATE posts SET isedited=TRUE, message='{}' WHERE id={} AND message != '{}'".
+                                     format( post["message"], post_id, post["message"]))
         if upd_rows is not None and str(upd_rows)[11] == '0':
             r = self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))
             if len(r) > 0:
                 return self.post_from_table(r[0]), falcon.HTTP_200
             return {"message": "Can't find post"}, falcon.HTTP_404
         r = self.post_from_table(self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))[0])
-        #r.pop("isEdited")
         return r, falcon.HTTP_200
 
     def create_posts(self, slug_or_id, posts):

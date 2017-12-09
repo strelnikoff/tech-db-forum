@@ -5,13 +5,15 @@ import tech_db_forum.dao.postDAO as postDAO
 import tech_db_forum.dao.userDAO as userDAO
 import datetime
 from dateutil.tz import tzlocal
-from pytz import timezone
 
 
 class ThreadDAO:
     def __init__(self):
         db_settings = settings.DatabaseSettings()
         self.db = postgresql.open(db_settings.get_command())
+
+    def __del__(self):
+        self.db.close()
 
     def get_details(self, slug_or_id):
         try:
@@ -20,7 +22,7 @@ class ThreadDAO:
             thread_id = None
         if thread_id is not None:
             result = self.db.query("SELECT * FROM threads WHERE id={}".format(thread_id))
-            if len(result)== 0:
+            if len(result) == 0:
                 return {"message": "Can't find thread"}, falcon.HTTP_404
             return self.thread_from_table(result[0]), falcon.HTTP_200
         result = self.db.query("SELECT * FROM threads WHERE lower(slug)=lower('{}')".format(slug_or_id))
@@ -39,33 +41,69 @@ class ThreadDAO:
             limit = "LIMIT {}".format(limit)
         else:
             limit = ""
-        if desc is not None:
+        if desc == "true":
             desc = " DESC"
         else:
             desc = ""
-        if since is not None:
-            print(since)
-            if desc == " DESC":
-                since = " AND path < {}".format(since)
-            else:
-                since = " AND id > {}".format(since)
-        else:
-            since = ""
         if sort == "flat":
-            result = self.db.query("SELECT * FROM posts WHERE thread={} {} ORDER BY created, id {} {}".format(thread["id"], since, desc, limit))
-            posts=[]
+            if since is not None:
+                if desc == " DESC":
+                    since = " AND id < {}".format(since)
+                else:
+                    since = " AND id > {}".format(since)
+            else:
+                since = ""
+            result = self.db.query("SELECT * FROM posts WHERE thread={} {} ORDER BY created {}, id {} {}".
+                                   format(thread["id"], since, desc, desc, limit))
+            posts = []
             for r in result:
                 posts.append(postDAO.PostDAO.post_from_table(r))
             return posts, falcon.HTTP_200
-        if sort == "tree":
+        elif sort == "tree":
+            if since is not None:
+                if desc == " DESC":
+                    since = " AND path < (SELECT path FROM posts WHERE id={})".format(since)
+                else:
+                    since = " AND path > (SELECT path FROM posts WHERE id={})".format(since)
+            else:
+                since = ""
             result = self.db.query(
-                "SELECT * FROM posts WHERE thread={} {} ORDER BY path {} {}".format(thread["id"], since, desc,
+                "SELECT * FROM posts WHERE thread={} {} ORDER BY path {}, id {} {}".format(thread["id"], since, desc, desc,
                                                                                           limit))
             posts = []
             for r in result:
                 posts.append(postDAO.PostDAO.post_from_table(r))
             return posts, falcon.HTTP_200
-        pass
+        elif sort == "parent_tree":
+            query = "SELECT * FROM posts WHERE path[2] IN (SELECT id FROM posts WHERE thread = {} AND parent = 0 ".\
+                format(thread["id"])
+            if since is not None:
+                if desc == " DESC":
+                    query += " AND path < (SELECT path FROM posts WHERE id = {})".format(since)
+                else:
+                    query += " AND path > (SELECT path FROM posts WHERE id = {})".format(since)
+            query += " ORDER BY id {} ".format(desc)
+            if limit is not None:
+                query += limit
+            query += ") ORDER BY path {}".format(desc)
+            result = self.db.query(query)
+            posts = []
+            for r in result:
+                posts.append(postDAO.PostDAO.post_from_table(r))
+            return posts, falcon.HTTP_200
+        else:
+            if since is not None:
+                if desc == " DESC":
+                    since = " AND id < {}".format(since)
+                else:
+                    since = " AND id > {}".format(since)
+            else:
+                since = ""
+            result = self.db.query("SELECT * FROM posts WHERE thread = {} {} ORDER BY id {} {}".format(thread["id"], since, desc, limit))
+            posts = []
+            for r in result:
+                posts.append(postDAO.PostDAO.post_from_table(r))
+            return posts, falcon.HTTP_200
 
     def create_posts(self, slug_or_id, posts):
         try:
@@ -83,16 +121,17 @@ class ThreadDAO:
         for p in posts:
             if p.get("parent"):
                 if self.get_parent_thread(p.get("parent")) != thread["id"]:
-                    print(thread, p.get("parent"))
                     return {"message": "Parent thread error"}, falcon.HTTP_409
-        created_time = datetime.datetime.now(tzlocal())#.isoformat()
+        created_time = datetime.datetime.now(tzlocal())
         result_posts = []
         ins = self.db.prepare("INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES "
                               "($1, $2, $3, $4, $5, $6) RETURNING *")
         for p in posts:
             if p.get("message") is None: p["message"] = ""
             if p.get("parent") is None: p["parent"] = 0
-            result_posts.append(postDAO.PostDAO.post_from_table(ins(thread["id"], user["nickname"], thread["forum"],created_time, p["message"], p["parent"])[0]))
+            result_posts.append(postDAO.PostDAO.post_from_table(ins(thread["id"], user["nickname"], thread["forum"],
+                                                                    created_time, p["message"], p["parent"])[0]))
+        ins.close()
         return result_posts, falcon.HTTP_201
 
     def get_parent_thread(self, parent_id):
@@ -123,10 +162,8 @@ class ThreadDAO:
             title = "title = '{}'".format(title)
         else: title = ""
         query = "UPDATE threads SET {} {} WHERE {}".format(message, title, find)
-        #print(query)
         result = self.db.query(query)
         result=str(result)
-        print(len(result))
         if result[11] == '0':
             return {"message": "Can't find thread"}, falcon.HTTP_404
         result = self.db.query("SELECT * FROM threads WHERE {}".format(find))
@@ -149,13 +186,13 @@ class ThreadDAO:
             self.db.query("INSERT INTO votes (nickname, voice, thread) VALUES ('{}', {}, {})".format(
                 vote["nickname"], vote["voice"], thread["id"]
             ))
-            self.db.query("UPDATE threads SET votes = votes+({}) WHERE id = {}".format(vote["voice"], thread["id"]))
+            #r = self.db.query("UPDATE threads SET votes = votes+({}) WHERE id = {}".format(vote["voice"], thread["id"]))
             thread["votes"] = thread["votes"] + vote["voice"]
             return thread, falcon.HTTP_200
         else:
-            self.db.query("UPDATE votes SET voice = {}".format(int(vote["voice"])))
-            self.db.query("UPDATE threads SET votes = votes+({})-({}) WHERE id = {}".format(
-                vote["voice"], vote_last[0]["voice"], thread["id"]))
+            self.db.query("UPDATE votes SET voice = {} WHERE id={}".format(int(vote["voice"]), vote_last[0]["id"]))
+            # self.db.query("UPDATE threads SET votes = votes+({})-({}) WHERE id = {}".format(
+            #     vote["voice"], vote_last[0]["voice"], thread["id"]))
             thread["votes"] = thread["votes"] - vote_last[0]["voice"] + vote["voice"]
             return thread, falcon.HTTP_200
 
@@ -177,6 +214,7 @@ class ThreadDAO:
             return None
         return vote
 
+
     @staticmethod
     def vote_from_table(t):
         return {
@@ -185,6 +223,7 @@ class ThreadDAO:
             "thread": t["thread"],
             "id": t["id"]
         }
+
     @staticmethod
     def thread_from_table(t):
         return {

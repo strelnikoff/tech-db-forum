@@ -9,10 +9,13 @@ class UserDAO:
         db_settings = settings.DatabaseSettings()
         self.db = postgresql.open(db_settings.get_command())
 
+    def __del__(self):
+        self.db.close()
+
     def create_user(self, nickname, profile):
         profile = self.check_profile(profile)
-        users = self.db.query("SELECT * FROM users WHERE lower(nickname) = lower('{}') OR lower(email) = lower('{}')".format(nickname,
-                                                                                                        profile["email"]))
+        users = self.db.query("SELECT * FROM users WHERE lower(nickname) = lower('{}') OR lower(email) = lower('{}')".
+                              format(nickname, profile["email"]))
         if len(users) != 0:
             result = []
             for t in users:
@@ -40,8 +43,8 @@ class UserDAO:
         if len(user) == 1:
             user_conflict = None
             if profile.get("email"):
-                user_conflict = self.db.query("SELECT * FROM users WHERE lower(email) = lower('{}') and \
-                                              nickname != lower('{}')".format(profile["email"], nickname))
+                user_conflict = self.db.query("SELECT * FROM users WHERE lower(email) = lower('{}') and "
+                                              "nickname != lower('{}')".format(profile["email"], nickname))
             if user_conflict is None or len(user_conflict) == 0:
                 set_query = ""
                 if profile.get("about"):

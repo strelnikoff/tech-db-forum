@@ -11,6 +11,9 @@ class ForumDAO:
         db_settings = settings.DatabaseSettings()
         self.db = postgresql.open(db_settings.get_command())
 
+    def __del__(self):
+        self.db.close()
+
     def create_forum(self, forum):
         forum = self.check_forum(forum)
         user = self.db.query("SELECT * FROM users WHERE lower(nickname) = lower('{}')".format(forum["user"]))
@@ -23,10 +26,8 @@ class ForumDAO:
         self.db.query("INSERT INTO forums(slug, title, nickname) VALUES ('{}', '{}', '{}')".format(
             forum["slug"], forum["title"], user["nickname"]))
         forum["user"] = user["nickname"]
-
         return forum, falcon.HTTP_201
 
-    # Не ясно что считать той же веткой
     def create_thread(self, slug, thread):
         thread = self.check_thread(thread)
         forum, code = self.get_forum_details(slug)
@@ -45,15 +46,15 @@ class ForumDAO:
             thread["created"] = created_time
         if thread.get("slug") is None:
             self.db.query(
-                "INSERT INTO threads (nickname, created, forum, message, title) VALUES ('{}','{}','{}','{}','{}')".format(
-                    user["nickname"], thread["created"], forum["slug"], thread["message"], thread["title"]
-                ))
+                "INSERT INTO threads (nickname, created, forum, message, title) VALUES ('{}','{}','{}','{}','{}')".
+                    format(user["nickname"], thread["created"], forum["slug"], thread["message"], thread["title"])
+            )
             return self.get_thread(forum["slug"], thread), falcon.HTTP_201
         else:
             self.db.query(
-                "INSERT INTO threads (nickname, created, forum, message, title, slug) VALUES \
-                ('{}','{}','{}','{}','{}','{}')".format(user["nickname"], thread["created"], forum["slug"], thread["message"],
-                                                        thread["title"], thread["slug"])
+                "INSERT INTO threads (nickname, created, forum, message, title, slug) VALUES "
+                "('{}','{}','{}','{}','{}','{}')".format(user["nickname"], thread["created"], forum["slug"],
+                                                         thread["message"], thread["title"], thread["slug"])
             )
             return self.get_thread(slug, thread), falcon.HTTP_201
 
@@ -63,7 +64,6 @@ class ForumDAO:
             return {"message": "Can't find forum {}".format(slug)}, falcon.HTTP_404
         return forum_det, falcon.HTTP_200
 
-    # Тут нужно разобраться со временем
     def get_forum_threads(self, slug, limit, since, desc):
         forum, code = self.get_forum_details(slug)
         if code == falcon.HTTP_404:
@@ -77,11 +77,8 @@ class ForumDAO:
         query = query + " ORDER BY created"
         if desc == "true":
             query = query + " DESC"
-        #if desc == "false":
-        #    query = query + " ORDER BY created"
         if limit is not None:
             query = query + " LIMIT {}".format(limit)
-        #print(query)
         info = self.db.query(query)
         result = []
         for i in info:
@@ -116,17 +113,12 @@ class ForumDAO:
             desc = " DESC"
         else:
             desc = ""
-        '''t = self.db.query("SELECT * FROM users WHERE nickname IN (SELECT DISTINCT posts.nickname AS nickname FROM posts \
-                          INNER JOIN threads ON (posts.forum = threads.forum AND threads.forum = '{}' AND posts.forum = '{}')) \
-                          {} ORDER BY lower(nickname) COLLATE ucs_basic {} {}".format(slug, slug, since, desc, limit))
-        '''
+
         t = self.db.query("SELECT * FROM (SELECT DISTINCT * FROM users WHERE (nickname IN (SELECT nickname FROM threads "
-                          "WHERE lower(forum)=lower('{}')) OR nickname IN (SELECT nickname FROM posts WHERE lower(forum)=lower('{}'))) {}) AS foo  "
-                          "ORDER BY lower(nickname) COLLATE ucs_basic {} {};".format(slug, slug, since, desc, limit));
+                          "WHERE lower(forum)=lower('{}')) OR nickname IN (SELECT nickname FROM posts WHERE "
+                          "lower(forum)=lower('{}'))) {}) AS foo ORDER BY lower(nickname) COLLATE ucs_basic {} {};".
+                          format(slug, slug, since, desc, limit));
         result = []
-        print("SELECT * FROM (SELECT DISTINCT * FROM users WHERE (nickname IN (SELECT nickname FROM threads "
-                          "WHERE lower(forum)=lower('{}')) OR nickname IN (SELECT nickname FROM posts WHERE lower(forum)=lower('{}'))) {}) AS foo  "
-                          "ORDER BY lower(nickname) COLLATE ucs_basic {} {};".format(slug, slug, since, desc, limit))
         for i in t:
             result.append(userDAO.UserDAO.user_from_table(i))
         if len(result) == 0:
@@ -170,8 +162,6 @@ class ForumDAO:
     def thread_from_table(t):
         return {
             "author": t["nickname"],
-            # datetime.datetime(2017, 2, 14, 11, 38, 18, 344000)
-            # 2017-02-14T11:38:18.344+03:00
             "created": t["created"].isoformat(),
             "forum": t["forum"],
             "id": t["id"],

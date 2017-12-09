@@ -60,7 +60,6 @@ class Threads(object):
         resp.body = json.dumps(resp_body)
         resp.status = resp_status
 
-# Не верно
 class Users(object):
     def on_get(self, req, resp, slug):
         forum_dao = forumDAO.ForumDAO()

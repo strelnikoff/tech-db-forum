@@ -44,37 +44,8 @@ CREATE TABLE votes (
   id BIGSERIAL PRIMARY KEY,
   nickname CHARACTER VARYING,
   voice INTEGER,
-  thread INTEGER
+  thread BIGINT
 );
-
-
-
-SELECT id, message, thread, forum, nickname, created, isedited, parent FROM posts
-WHERE thread = 1 AND
-      CASE WHEN $2 > -1
-        THEN
-          CASE WHEN $3 = 'DESC'
-            THEN
-              path < (
-                SELECT p1.path FROM posts p1
-                WHERE p1.id = $2)
-          WHEN $3 = 'ASC'
-            THEN path > (
-              SELECT p1.path
-              FROM post p1
-              WHERE p1.id = $2)
-          ELSE TRUE
-          END
-      ELSE
-        TRUE
-      END
-ORDER BY path DESC, thread DESC LIMIT 10
-
-INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (1, 'sdas', 1, '2017-12-08T05:13:23.721+03:00', 'sdfasdf', 0) RETURNING thread, nickname, forum, created, message, parent, path;
-INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (1, 'sdas', 1, '2017-12-08T05:13:23.721+03:00', 'sdfasdf', 1) RETURNING thread, nickname, forum, created, message, parent, path;
-
-INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (1, 'sdas', 1, '2017-12-08T05:13:23.721+03:00', 'sdfasdf', 5) RETURNING thread, nickname, forum, created, message, parent, path;
-
 
 CREATE FUNCTION create_path() RETURNS TRIGGER AS $create_path$
 DECLARE
@@ -94,9 +65,27 @@ $create_path$ LANGUAGE plpgsql;
 CREATE TRIGGER set_path AFTER INSERT ON posts
   FOR EACH ROW EXECUTE PROCEDURE create_path();
 
-DROP TRIGGER set_path ON posts;
-DROP FUNCTION create_path();
-TRUNCATE posts;
-SELECT id, path FROM posts ORDER BY path;
+CREATE FUNCTION add_voice() RETURNS TRIGGER AS $add_voice$
+BEGIN
+  UPDATE threads SET votes=votes+NEW.voice WHERE id=NEW.thread;
+  RETURN NEW;
+END;
+$add_voice$ LANGUAGE plpgsql;
+CREATE TRIGGER ins_voice AFTER INSERT ON votes
+  FOR EACH ROW EXECUTE PROCEDURE add_voice();
 
-SELECT (SELECT path FROM posts WHERE id=2) || ARRAY[ BIGINT (1)]
+CREATE FUNCTION update_voice() RETURNS TRIGGER AS $add_voice$
+BEGIN
+  UPDATE threads SET votes=votes-OLD.voice+NEW.voice WHERE id=NEW.thread;
+  RETURN NEW;
+END;
+$add_voice$ LANGUAGE plpgsql;
+CREATE TRIGGER upd_voice AFTER UPDATE ON votes
+  FOR EACH ROW EXECUTE PROCEDURE update_voice();
+
+
+SELECT * FROM votes;
+SELECT * FROM threads;
+SELECT * FROM threads WHERE id=36079;
+DROP TRIGGER upd_voice ON votes;
+DROP FUNCTION create_path();
