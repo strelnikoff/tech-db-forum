@@ -114,24 +114,21 @@ class ThreadDAO:
             return {"message": "Can't find thread"}, falcon.HTTP_404
         if len(posts) == 0:
             return [], falcon.HTTP_201
-        user_dao = userDAO.UserDAO()
-        user, code = user_dao.get_user(posts[0]["author"])
-        if code == falcon.HTTP_404:
-            return {"message": "Can't find user"}, falcon.HTTP_404
-        for p in posts:
-            if p.get("parent"):
-                if self.get_parent_thread(p.get("parent")) != thread["id"]:
-                    return {"message": "Parent thread error"}, falcon.HTTP_409
         created_time = datetime.datetime.now(tzlocal())
         result_posts = []
         ins = self.db.prepare("INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES "
-                              "($1, $2, $3, $4, $5, $6) RETURNING *")
+                              "($1, (SELECT nickname FROM users WHERE lower(nickname)=lower($2)), $3, $4, $5, $6) "
+                              "RETURNING *")
         for p in posts:
             if p.get("message") is None: p["message"] = ""
             if p.get("parent") is None: p["parent"] = 0
-            result_posts.append(postDAO.PostDAO.post_from_table(ins(thread["id"], user["nickname"], thread["forum"],
-                                                                    created_time, p["message"], p["parent"])[0]))
-        ins.close()
+            try:
+                r = ins(thread["id"], p["author"], thread["forum"], created_time, p["message"], p["parent"])
+                if len(r) == 0:
+                    return {"message": "Parent thread error"}, falcon.HTTP_409
+                result_posts.append(postDAO.PostDAO.post_from_table(r[0]))
+            except postgresql.exceptions.NotNullError:
+                return {"message": "User error"}, falcon.HTTP_404
         return result_posts, falcon.HTTP_201
 
     def get_parent_thread(self, parent_id):

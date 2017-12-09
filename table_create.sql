@@ -1,14 +1,14 @@
-DROP TABLE forums;
-DROP TABLE users;
-DROP TABLE threads;
-DROP TABLE posts;
-DROP TABLE votes;
-
 CREATE TABLE forums (
   slug CHARACTER VARYING PRIMARY KEY,
   title CHARACTER VARYING,
   nickname CHARACTER VARYING
 );
+CREATE INDEX idx_slug_hash_forum
+ON forums USING hash (lower(slug));
+
+CREATE INDEX idx_lower_slug_forum
+ON forums (LOWER(slug)) ;
+
 
 CREATE TABLE users (
   nickname TEXT,
@@ -16,6 +16,12 @@ CREATE TABLE users (
   email TEXT,
   fullname TEXT
 );
+
+CREATE INDEX idx_nickname_hash
+ON users USING hash (lower(nickname));
+
+CREATE INDEX idx_lower_nickname
+ON users (LOWER(nickname)) ;
 
 CREATE TABLE threads (
   nickname CHARACTER VARYING,
@@ -28,17 +34,24 @@ CREATE TABLE threads (
   votes INTEGER DEFAULT 0
 );
 
+CREATE INDEX idx_slug_hash_threads
+ON threads USING hash (lower(slug));
+
+CREATE INDEX idx_lower_slug_threads
+ON threads (lower(slug));
+
 CREATE TABLE posts (
-  nickname CHARACTER VARYING,
+  nickname CHARACTER VARYING NOT NULL ,
   created TIMESTAMP WITH TIME ZONE,
   forum CHARACTER VARYING,
   id BIGSERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message CHARACTER VARYING,
   parent BIGINT DEFAULT 0,
-  thread INTEGER,
+  thread BIGINT,
   path BIGINT []
 );
+
 
 CREATE TABLE votes (
   id BIGSERIAL PRIMARY KEY,
@@ -83,9 +96,20 @@ $add_voice$ LANGUAGE plpgsql;
 CREATE TRIGGER upd_voice AFTER UPDATE ON votes
   FOR EACH ROW EXECUTE PROCEDURE update_voice();
 
+CREATE FUNCTION create_post() RETURNS TRIGGER AS $create_post$
+DECLARE
+  partent_thread BIGINT;
+BEGIN
+  IF NEW.parent = 0::BIGINT THEN
+    RETURN NEW;
+  END IF;
+  SELECT thread INTO partent_thread FROM posts WHERE id=NEW.parent;
+  IF partent_thread != NEW.thread OR partent_thread IS NULL THEN
+    RETURN NULL;
+  END IF;
+  RETURN NEW;
+END;
+$create_post$ LANGUAGE plpgsql;
 
-SELECT * FROM votes;
-SELECT * FROM threads;
-SELECT * FROM threads WHERE id=36079;
-DROP TRIGGER upd_voice ON votes;
-DROP FUNCTION create_path();
+CREATE TRIGGER new_post BEFORE INSERT ON posts
+  FOR EACH ROW EXECUTE PROCEDURE create_post();
