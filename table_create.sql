@@ -6,25 +6,25 @@ CREATE TABLE users (
 );
 
 CREATE INDEX idx_nickname_user
-ON users (nickname);
+ON users USING hash (nickname);
 
 CREATE INDEX idx_email_user
-ON users (email);
+ON users USING hash (email);
 
 
 CREATE TABLE forums (
   slug citext PRIMARY KEY,
   title CHARACTER VARYING,
-  nickname citext NOT NULL references users(nickname)
+  nickname citext NOT NULL
 );
 
 CREATE INDEX idx_slug_forum
-ON forums (slug) ;
+ON forums  USING hash  (slug) ;
 
 CREATE TABLE threads (
-  nickname citext NOT NULL references users(nickname),
+  nickname citext NOT NULL,
   created TIMESTAMP WITH TIME ZONE,
-  forum citext NOT NULL references forums(slug),
+  forum citext NOT NULL,
   id BIGSERIAL PRIMARY KEY ,
   message TEXT,
   slug citext UNIQUE,
@@ -33,31 +33,31 @@ CREATE TABLE threads (
 );
 
 CREATE INDEX idx_slug_threads
-ON threads (slug);
+ON threads  USING hash (slug);
 
 CREATE INDEX idx_forum_threads
-ON threads (forum);
+ON threads  USING hash (forum);
 
 CREATE TABLE posts (
-  nickname citext NOT NULL  references users(nickname),
+  nickname citext NOT NULL,
   created TIMESTAMP WITH TIME ZONE,
-  forum citext NOT NULL references forums(slug),
+  forum citext NOT NULL,
   id BIGSERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message CHARACTER VARYING,
   parent BIGINT DEFAULT 0,
-  thread BIGINT NOT NULL REFERENCES threads(id),
+  thread BIGINT NOT NULL,
   path BIGINT []
 );
 
 CREATE INDEX idx_forum_posts
-ON posts (forum);
+ON posts  USING hash (forum);
 
 CREATE INDEX idx_nickname_posts
-ON posts (nickname);
+ON posts  USING hash (nickname);
 
 CREATE INDEX idx_message_posts
-ON posts (message);
+ON posts USING hash (message);
 
 
 
@@ -69,7 +69,7 @@ CREATE TABLE votes (
 );
 
 CREATE INDEX idx_nickname_votes
-ON votes (nickname);
+ON votes  USING hash (nickname);
 
 CREATE INDEX idx_thread_votes
 ON votes (thread);
