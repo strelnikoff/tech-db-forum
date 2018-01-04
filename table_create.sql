@@ -1,64 +1,78 @@
-CREATE TABLE forums (
-  slug CHARACTER VARYING PRIMARY KEY,
-  title CHARACTER VARYING,
-  nickname CHARACTER VARYING
-);
-CREATE INDEX idx_slug_hash_forum
-ON forums USING hash (lower(slug));
-
-CREATE INDEX idx_lower_slug_forum
-ON forums (LOWER(slug)) ;
-
-
 CREATE TABLE users (
-  nickname TEXT,
+  nickname citext UNIQUE NOT NULL,
   about TEXT,
-  email TEXT,
+  email citext UNIQUE NOT NULL,
   fullname TEXT
 );
 
-CREATE INDEX idx_nickname_hash
-ON users USING hash (lower(nickname));
+CREATE INDEX idx_nickname_user
+ON users (nickname);
 
-CREATE INDEX idx_lower_nickname
-ON users (LOWER(nickname)) ;
+CREATE INDEX idx_email_user
+ON users (email);
+
+
+CREATE TABLE forums (
+  slug citext PRIMARY KEY,
+  title CHARACTER VARYING,
+  nickname citext NOT NULL references users(nickname)
+);
+
+CREATE INDEX idx_slug_forum
+ON forums (slug) ;
 
 CREATE TABLE threads (
-  nickname CHARACTER VARYING,
+  nickname citext NOT NULL references users(nickname),
   created TIMESTAMP WITH TIME ZONE,
-  forum CHARACTER VARYING,
+  forum citext NOT NULL references forums(slug),
   id BIGSERIAL PRIMARY KEY ,
   message TEXT,
-  slug CHARACTER VARYING,
+  slug citext UNIQUE,
   title CHARACTER VARYING,
   votes INTEGER DEFAULT 0
 );
 
-CREATE INDEX idx_slug_hash_threads
-ON threads USING hash (lower(slug));
+CREATE INDEX idx_slug_threads
+ON threads (slug);
 
-CREATE INDEX idx_lower_slug_threads
-ON threads (lower(slug));
+CREATE INDEX idx_forum_threads
+ON threads (forum);
 
 CREATE TABLE posts (
-  nickname CHARACTER VARYING NOT NULL ,
+  nickname citext NOT NULL  references users(nickname),
   created TIMESTAMP WITH TIME ZONE,
-  forum CHARACTER VARYING,
+  forum citext NOT NULL references forums(slug),
   id BIGSERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message CHARACTER VARYING,
   parent BIGINT DEFAULT 0,
-  thread BIGINT,
+  thread BIGINT NOT NULL REFERENCES threads(id),
   path BIGINT []
 );
+
+CREATE INDEX idx_forum_posts
+ON posts (forum);
+
+CREATE INDEX idx_nickname_posts
+ON posts (nickname);
+
+CREATE INDEX idx_message_posts
+ON posts (message);
+
 
 
 CREATE TABLE votes (
   id BIGSERIAL PRIMARY KEY,
-  nickname CHARACTER VARYING,
+  nickname citext NOT NULL references users(nickname),
   voice INTEGER,
-  thread BIGINT
+  thread BIGINT NOT NULL REFERENCES threads(id)
 );
+
+CREATE INDEX idx_nickname_votes
+ON votes (nickname);
+
+CREATE INDEX idx_thread_votes
+ON votes (thread);
 
 CREATE FUNCTION create_path() RETURNS TRIGGER AS $create_path$
 DECLARE

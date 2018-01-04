@@ -37,24 +37,16 @@ class PostDAO:
         return post, falcon.HTTP_200
 
     def edit_post(self, post_id, post):
-        post = self.check_post(post)
-        upd_rows = None
-        if len(post)!=0:
-            upd_rows = self.db.query("UPDATE posts SET isedited=TRUE, message='{}' WHERE id={} AND message != '{}'".
-                                     format( post["message"], post_id, post["message"]))
-        if upd_rows is not None and str(upd_rows)[11] == '0':
-            r = self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))
-            if len(r) > 0:
-                return self.post_from_table(r[0]), falcon.HTTP_200
+        if post.get("message"):
+            post["values"] = "not exists(SELECT p.id FROM posts p WHERE p.message='{}' AND p.id = {}), '{}'".format(
+                    post["message"], post_id, post["message"])
+        else:
+            post["values"] = "isedited, message"
+        upd_rows = self.db.query("UPDATE posts SET (isedited, message) = ({}) WHERE id={} RETURNING *".
+                                     format(post["values"], post_id, post.get("message")))
+        if len(upd_rows) == 0:
             return {"message": "Can't find post"}, falcon.HTTP_404
-        r = self.post_from_table(self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))[0])
-        return r, falcon.HTTP_200
-
-    def create_posts(self, slug_or_id, posts):
-        pass
-
-    def check_post(self, post):
-        return post
+        return self.post_from_table(upd_rows[0]), falcon.HTTP_200
 
     @staticmethod
     def post_from_table(t):
