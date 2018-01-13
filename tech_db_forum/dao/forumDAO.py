@@ -7,12 +7,15 @@ from dateutil.tz import tzlocal
 
 
 class ForumDAO:
+    db_settings = settings.DatabaseSettings()
+    db = postgresql.open(db_settings.get_command())
     def __init__(self):
-        db_settings = settings.DatabaseSettings()
-        self.db = postgresql.open(db_settings.get_command())
+        pass
 
     def __del__(self):
-        self.db.close()
+        # self.db.close()
+        pass
+
 
     def create_forum(self, forum):
         try:

@@ -2,18 +2,19 @@ import postgresql
 import falcon
 import tech_db_forum.settings as settings
 import tech_db_forum.dao.postDAO as postDAO
-import tech_db_forum.dao.userDAO as userDAO
 import datetime
 from dateutil.tz import tzlocal
 
 
 class ThreadDAO:
+    db_settings = settings.DatabaseSettings()
+    db = postgresql.open(db_settings.get_command())
     def __init__(self):
-        db_settings = settings.DatabaseSettings()
-        self.db = postgresql.open(db_settings.get_command())
+        pass
 
     def __del__(self):
-        self.db.close()
+        # self.db.close()
+        pass
 
     # Ok
     def get_details(self, slug_or_id):
@@ -113,19 +114,24 @@ class ThreadDAO:
             return [], falcon.HTTP_201
         created_time = datetime.datetime.now(tzlocal())
         result_posts = []
-        ins = self.db.prepare("INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES "
-                              "($1, (SELECT nickname FROM users WHERE nickname=$2), $3, $4, $5, $6) "
-                              "RETURNING *")
+        values = ""
         for p in posts:
             if p.get("message") is None: p["message"] = ""
             if p.get("parent") is None: p["parent"] = 0
-            try:
-                r = ins(thread, p["author"], forum, created_time, p["message"], p["parent"])
-                if len(r) == 0:
-                    return {"message": "Parent thread error"}, falcon.HTTP_409
-                result_posts.append(postDAO.PostDAO.post_from_table(r[0]))
-            except postgresql.exceptions.NotNullError:
-                return {"message": "User error"}, falcon.HTTP_404
+            values += "({}, (SELECT nickname FROM users WHERE nickname='{}'), '{}', '{}', '{}', {}), ".format(
+                    thread, p["author"], forum, created_time, p["message"], p["parent"]
+                )
+        values = values[:-2]
+        query = "INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES {} RETURNING *".format(values)
+        try:
+            r = self.db.query(query)
+        except postgresql.exceptions.NotNullError:
+            return {"message": "User error"}, falcon.HTTP_404
+        if len(r) == 0:
+            return {"message": "Parent thread error"}, falcon.HTTP_409
+        #print(query)
+        for post in r:
+            result_posts.append(postDAO.PostDAO.post_from_table(post))
         return result_posts, falcon.HTTP_201
 
     def edit_thread(self, slug_or_id, thread):

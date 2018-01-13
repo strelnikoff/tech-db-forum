@@ -8,13 +8,15 @@ from pytz import timezone
 
 
 class PostDAO:
-
+    db_settings = settings.DatabaseSettings()
+    db = postgresql.open(db_settings.get_command())
     def __init__(self):
-        db_settings = settings.DatabaseSettings()
-        self.db = postgresql.open(db_settings.get_command())
+        pass
 
     def __del__(self):
-        self.db.close()
+        # self.db.close()
+        pass
+
 
     def get_details(self, post_id, related=[]):
         post = self.db.query("SELECT * FROM posts WHERE id={}".format(post_id))

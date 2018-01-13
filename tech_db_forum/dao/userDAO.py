@@ -4,13 +4,14 @@ import falcon
 
 
 class UserDAO:
-
+    db_settings = settings.DatabaseSettings()
+    db = postgresql.open(db_settings.get_command())
     def __init__(self):
-        db_settings = settings.DatabaseSettings()
-        self.db = postgresql.open(db_settings.get_command())
+        pass
 
     def __del__(self):
-        self.db.close()
+        pass
+        # self.db.close()
 
     #Возможно кусок с ошибкой медленный
     def create_user(self, nickname, profile):
