@@ -59,6 +59,8 @@ ON posts  USING hash (nickname);
 CREATE INDEX idx_message_posts
 ON posts USING hash (message);
 
+CREATE INDEX idx_thread_posts
+ON posts (thread);
 
 
 CREATE TABLE votes (
