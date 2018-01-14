@@ -16,7 +16,6 @@ class ForumDAO:
         # self.db.close()
         pass
 
-
     def create_forum(self, forum):
         try:
             result = self.db.query("INSERT INTO forums(slug, title, nickname) VALUES ('{}', '{}', "
@@ -63,10 +62,9 @@ class ForumDAO:
         return forum_det, falcon.HTTP_200
 
     def get_forum_threads(self, slug, limit, since, desc):
-        forum, code = self.get_forum(slug)
-        if code == falcon.HTTP_404:
-            return forum, code
-        query = "SELECT * FROM threads WHERE forum = '{}'".format(slug)
+
+        query = "SELECT threads.slug, nickname,title, votes, created, message,id, forum, test.slug as test FROM threads "\
+                "RIGHT JOIN (SELECT slug FROM forums WHERE slug='{}') AS test ON forum = '{}'".format(slug, slug)
         if since is not None:
             if desc == "true":
                 query = query + " AND created <= '{}'".format(since)
@@ -79,23 +77,16 @@ class ForumDAO:
             query = query + " LIMIT {}".format(limit)
         info = self.db.query(query)
         result = []
+        if len(info)==0 or info[0]["test"] is None:
+            return {"message": "Can't find forum"}, falcon.HTTP_404
+        if info[0]["slug"] is None:
+            return result, falcon.HTTP_200
+
         for i in info:
             result.append(self.thread_from_table(i))
         return result, falcon.HTTP_200
 
-    # Тут нужно добавить голоса
-    def get_thread(self, slug, thread):
-        t = self.db.query("SELECT * FROM threads WHERE forum='{}' AND nickname='{}' AND \
-                               message='{}' AND title='{}'".format(slug, thread["author"], thread["message"],
-                                                                   thread["title"]))
-        if len(t) == 0:
-            return {}
-        return self.thread_from_table(t[0])
-
     def get_forum_users(self, slug, limit, since, desc):
-        forum, code = self.get_forum(slug)
-        if code == falcon.HTTP_404:
-            return {"message": "Can't find forum"}, falcon.HTTP_404
         if limit is not None:
             limit = "LIMIT {}".format(limit)
         else:
@@ -111,32 +102,31 @@ class ForumDAO:
         else:
             desc = ""
 
-        t = self.db.query("SELECT * FROM (SELECT DISTINCT * FROM users WHERE (nickname IN (SELECT nickname FROM threads "
-                          "WHERE forum='{}') OR nickname IN (SELECT nickname FROM posts WHERE "
-                          "forum='{}')) {}) AS foo ORDER BY nickname COLLATE ucs_basic {} {};".
-                          format(slug, slug, since, desc, limit));
+        query ="SELECT nickname, email, about, fullname, test.slug "\
+                          " FROM users RIGHT JOIN (SELECT slug FROM forums WHERE slug='{}') AS test "\
+                          "ON nickname IN (SELECT nickname FROM forums_users "\
+                          "WHERE slug = '{}') {} ORDER BY nickname COLLATE ucs_basic {} {}".format(slug, slug, since, desc, limit);
+        t = self.db.query(query)
+        if len(t)==0 or t[0]["slug"] is None:
+            return {"message": "Can't find forum"}, falcon.HTTP_404
         result = []
+        if t[0]["nickname"] is None:
+            return result, falcon.HTTP_200
         for i in t:
             result.append(userDAO.UserDAO.user_from_table(i))
         return result, falcon.HTTP_200
 
-    def check_forum(self, forum):
-        return forum
-
-    def check_thread(self, thread):
-        return thread
-
-    # FIX IT
     def forum_info(self, slug):
-        info = self.db.query("SELECT * FROM forums WHERE slug = '{}'".format(slug))
+        info = self.db.query("SELECT slug, nickname, title, "
+                             "(SELECT COUNT(*) FROM posts WHERE forum ='{}') AS posts, "
+                             "(SELECT COUNT(*) FROM threads WHERE forum ='{}') AS threads FROM forums WHERE slug ='{}';"
+                             .format(slug, slug, slug))
         if len(info) == 0:
             return {}
-        posts_count = self.db.query("SELECT COUNT(*) FROM posts WHERE forum = '{}'".format(slug))[0][0]
-        threads_count = self.db.query("SELECT COUNT(*) FROM threads WHERE forum = '{}'".format(slug))[0][0]
         return {
-            "posts": posts_count,
+            "posts": info[0]["posts"],
             "slug": info[0]["slug"],
-            "threads": threads_count,
+            "threads": info[0]["threads"],
             "title": info[0]["title"],
             "user": info[0]["nickname"]
         }

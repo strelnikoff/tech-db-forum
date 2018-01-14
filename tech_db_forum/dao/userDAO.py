@@ -13,7 +13,6 @@ class UserDAO:
         pass
         # self.db.close()
 
-    #Возможно кусок с ошибкой медленный
     def create_user(self, nickname, profile):
         try:
             self.db.query("INSERT INTO users (nickname, about, email, fullname) VALUES ('{}', '{}', '{}', '{}')".format(
@@ -26,8 +25,6 @@ class UserDAO:
             result = []
             for t in users:
                 result.append(self.user_from_table(t))
-                # if result[len(result)-1]["nickname"] == nickname.lower():
-                #     result[len(result) - 1]["nickname"] = nickname
             return result, falcon.HTTP_409
 
     def get_user(self, nickname):

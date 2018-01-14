@@ -1,4 +1,79 @@
-INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (40448, (SELECT nickname FROM users WHERE nickname='e.Dl75OQqnUkrUpv'), 'PKK5qtzp2LRVsE', '2018-01-13 18:23:36.821925+03:00', 'Diu exemplo pati en nepotibus an cogeremur sacerdos amo velle fallit. Dura hymnus ad sum, rationi sinu eo confitetur. Da. Hi ex eo montium ea disseritur eo bonam amasti maestitiae an sub solam peste de te perdite. Rapinam. Similitudine cognosceremus totiens meum des detruncata teneat recolo dicimus, curam ac excusatio. Cogo utrique fama novi non tangunt sedentem tu des in dicant miseriae deo neque adparet, via meos res meum. Ipsa mole. Colligantur ut places inspirationis confitente, dulcedo, ore animae es gero certa ubi sciret huc dedisti post fieri. Ab splendeat curiosa quaero ita faciens sit desideraris auram curam, tua extra vis munda, omnibus det ago. Hac reddatur has solet enubiletur superbia moles visa imperas ob re haec eo miles. Fallere ut graeci posco, artificosa quae meo lineas et isti explorandi movent proruunt noe lunam incipio similia. Laetusque meos vivit hac, atque sic vix eum, e instituta en commendavit. Dulces ad constrictione adpetere fatemur oculi spiritus peccatores cor sua cogitamus inpressa at vi. Undique meminimus si eos inimicus oblectamenta sonos det sono frequentatur piae agro huc vivant.', 0), (40448, (SELECT nickname FROM users WHERE nickname='e.Dl75OQqnUkrUpv'), 'PKK5qtzp2LRVsE', '2018-01-13 18:23:36.821925+03:00', 'Eant hac simile ex, ne, ab sui re. In lux nimii eos, aequalis es rapinam tuam timore per re ei displiceo minutissimis transfigurans. Dei oblivio per sive eam ille rapiunt adpropinquet, bone liliorum credunt curo sint voluntate bene prae. Ruga sui hi ob peregrinor ipse mei una, nam meminimus sensus aves ea parvulus. Cor inmortali. Inlecebra conspiciatur. Vos fias cupimus omnes, alio expertum processura dura munda. Facie possimus malorum piam eam languores domino spem ei. Palpa eas lucente fletus dubitatione oneri sanum tam similitudine da suggeruntur voce se lapidem ubi fidem. Invenisse.', 0), (40448, (SELECT nickname FROM users WHERE nickname='e.Dl75OQqnUkrUpv'), 'PKK5qtzp2LRVsE', '2018-01-13 18:23:36.821925+03:00', 'Suspensus intraverunt facere deum non expertarum dominos tutor id nec. Tua adsit det me condit. Carnis meorum. At vegetas mole cuiusque assumuntur nec, vis dicite conscientia anima modi eo bonum re vi amo atque cum te. En humilem tam affectu, teneo. Pedes de scierim obsecro eant insinuat, ab. Ut. Mors videtur vi abs res an en, quasi seu. Fit rei. Gero meo fit latere reliquerim. Da iubens labor in reconditae, a. Ipsae stat augendo. Eas tot ideo malle resisto cognoscam hi, escam. Te. Succurrat tota da peccatis nova fabricatae det mundatior teneam dari.', 0), (40448, (SELECT nickname FROM users WHERE nickname='e.Dl75OQqnUkrUpv'), 'PKK5qtzp2LRVsE', '2018-01-13 18:23:36.821925+03:00', 'Sine nos fabrorum meo diligit, aditu ne usum, gratia luminoso ipsis piae potuimus exteriora una agro. Notiones es memores alterum sparsis se ait misericordia forsitan fabrorum sese en numerorum. Silente veritate nullam mei officium intendimus ergo temptatione te assuescunt nolit bonae. In tuum euge res en possit assuescere lux mors quam amarus tempus gloria tuum fine contrectatae eis necant promisisti. Nec seu os te divitiae te. Admonente indidem fias maxime me aditum retinuit plenas per avide per ei an secundum eam ea. Ipsae ingerantur iudicare cibum re poenaliter interius meminissemus quale os abs leges eo aquae ei. Viam si an lucis difiniendo exaudi amet quaerebam abyssus voluntate visa. Cadavere adhuc a attingi incolis ea ubi eum pulvis beatam amat commendatum donec quorum nihilo tota vivat. Agnosceremus dei tam vanias ab ut praesignata at seu facta imagine athanasio dei. Deum inesse exemplo ex ebriosus o erigo inde. Beatam abditis miseros colligimus quaere errans una vel os id alia adhuc, locutum, sic eis transit.', 0), (40448, (SELECT nickname FROM users WHERE nickname='e.Dl75OQqnUkrUpv'), 'PKK5qtzp2LRVsE', '2018-01-13 18:23:36.821925+03:00', 'Ecce fluctus dulces inusitatum. Spernat. Vae cuius lingua nati tuus mandamus meos dona animalibus e.', 0) RETURNING *;
+SELECT COUNT(*) FROM threads;
+SELECT count(*) FROM forums;
 
 
-INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (40565, (SELECT nickname FROM users WHERE nickname='possideri.ALI0xCA2V3J1jd'), 'r-J19JHN23RxRE', '2018-01-13 18:30:26.158656+03:00', 'Ianuas cotidie nonne. Soporem delectationem at erro, dicentium adprobandi pro os detruncata dei haereo vos pro si pars se. Faciet reponens id perdiderat cordi abs plus adipiscendae vero oneri notus. Vivit mei vae. Malim curo. Ex luminibus mei praeteritis inlusionibus tu inaequaliter eius reminiscerer nam dei malis difiniendo iam obsecro discerem debet. Ferre facta vituperare e ei facie eo, crucis sim curo separatum agito aegrotantes tuo. Bone tam intus ac mystice modi doce auri locutus, eis te quaerere ceteris an, statim eo pars absorpta tuam. Fuisse a comitum tuas penetrale sonuerit malis discernerem. Itidem frigidique factos casu ob melior mallem diu ob prodigia nusquam audio petam. Illac bibendi. En pro ad usui en tribuere tui, moveor possemus illic corpori de dimitti vi misericordiae. Cum meus. At tu alio amittere aspernatione deponamus diiudico utendi discernitur suae se inhaesero diversa actiones, constrictione ait. Rei rei. Timent sociorum. Cogitamus super os aut iubens varia natura peccator deus. Recti abs rei agam inconsummatus id hae dum dei, contexo locorum tenebris. Ac ubi sicut olorem.', 476517) RETURNING *;
+SELECT slug,
+  nickname,
+  title,
+  (SELECT COUNT(*) FROM posts WHERE forum = 'ar8fT6rS6ARer') AS posts,
+  (SELECT COUNT(*) FROM threads WHERE forum = 'ar8fT6rS6ARer') AS threads
+FROM forums WHERE slug = 'ar8fT6rS6ARer';
+
+SELECT *
+FROM threads WHERE forum = (SELECT slug FROM forums WHERE forums.slug='XQ2Cqikkol8e8') AND slug ='asdf';
+
+SELECT * FROM forums LIMIT 10;
+
+SELECT p.nickname as nickname,
+  p.created as created,
+  p.forum as forum,
+  p.id as id,
+  p.thread as thread,
+  p.message as message,
+  p.isedited as isedited,
+  p.parent as parent,
+  u.fullname as fullname,
+  u.email as email,
+  u.about as about,
+  t.message as tmessage,
+  t.created as tcreated,
+  t.votes as tvotes,
+  t.slug as tslug,
+  t.id as tid,
+  t.title as ttitle,
+  f.title as ftitle
+FROM posts as p
+  INNER JOIN threads as t ON p.thread = t.id
+  INNER JOIN users as u ON p.nickname = u.nickname
+  INNER JOIN forums AS f ON p.forum=f.slug AND p.id = 827382;
+
+SELECT * FROM posts LIMIT 10;
+
+INSERT INTO forums(slug, title, nickname) VALUES ('UcXJ6Ik9iLRXr', 'Audi pro illi.', (SELECT nickname FROM users WHERE nickname = 'etiam.8Cd5hhpSm3JD7V')) RETURNING *;
+
+
+SELECT * FROM posts WHERE forum='oH6yylEY-m8xs';
+SELECT * FROM threads WHERE forum='oH6yylEY-m8xs';
+
+SELECT * FROM users WHERE nickname IN (SELECT nickname FROM forums_users WHERE slug = 'oH6yylEY-m8xs')
+
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+SELECT pg_stat_statements_reset();
+
+SELECT * FROM pg_stat_statements;
+SELECT nickname, email, about, fullname, test.slug FROM users RIGHT JOIN (SELECT slug FROM forums WHERE slug = 'wT6nBv8b3m8Ek') as test ON nickname IN ( SELECT nickname FROM forums_users WHERE slug = 'wT6nBv8b3m8Ek') AND nickname > 'r53g0VPy39717.Zod'
+COLLATE ucs_basic ORDER BY nickname COLLATE ucs_basic;
+
+SELECT nickname, email, about, fullname, test.slug  FROM users RIGHT JOIN
+  (SELECT slug FROM forums WHERE slug='_s19xUF_lMS2r') AS test
+    ON
+      nickname IN (SELECT nickname FROM forums_users WHERE slug = '_s19xUF_lMS2r')  AND nickname > '09gsUxc09L7dr.Zod' COLLATE ucs_basic
+ORDER BY nickname COLLATE ucs_basic  LIMIT 100;
+
+SELECT nickname, email, about, fullname  FROM users WHERE nickname IN (SELECT nickname FROM forums_users WHERE slug = '_s19xUF_lMS2r');
+
+
+
+SELECT nickname, email, about, fullname, test.slug  FROM users RIGHT JOIN (SELECT slug FROM forums WHERE slug='_s19xUF_lMS2r') AS test ON nickname IN (SELECT nickname FROM forums_users WHERE slug = '_s19xUF_lMS2r')  ORDER BY nickname COLLATE ucs_basic  LIMIT 100
+
+
+SELECT nickname, email, about, fullname, test.slug  FROM users RIGHT JOIN (SELECT slug FROM forums WHERE slug='395831yHMak2r') AS test ON nickname IN (SELECT nickname FROM forums_users WHERE slug = '395831yHMak2r')  ORDER BY nickname COLLATE ucs_basic  LIMIT 10
+
+
+INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (68, 'solebat.RaHyaRh7F37up1', 'ay-1HSOk5MSeSx', '2018-01-14 18:57:02.117698+03:00', 'Deum illam cognoscam hae quamquam, ab. Has spes id multa iamque pulvere iste eos rem auri cibo fui tu en ne. Qui os tuo aurium en dominos, valeret. Suam discere. Statuit pugno species humanus requiruntur pax nusquam pax ut sono spe, reconciliare. Opus olent ita hic percipitur tuo respondi fudi. Agnovi. Confitente seu pane te tu hymnus plus hic semel me meas obtentu nollent. Sacrifico eo hae notatum ibi scis potestates quoniam agro inquit eas vi intus, colligenda. Bibendo pollutum calidum fores dei incorruptione. Eum habeas vos desiderans salutem exultans ab es tria os eum levia grave meo remotum. Tu eo id.', 0) RETURNING *;
+
+INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (68, 'praeditum.g3C840ljIkp1Jd', '1XcWP_L8fLKxsE', '2018-01-14 19:12:52.137277+03:00', 'Vivendum timere abs nominum aut beati laude luminibus me os fueramus. Fuit. Mea leges circumstant tuus me via sapientiae. Laetamur servo esau mirabiliter his eos, conor adest trium et. En hi amo volo opus ex tam, tui mea vix oleat fastu. Sua placet te. Id quia catervas et hi quippe vivat disputando salubritatis has rem qui longius illac dixit placeant formas respondit una. Spectandum eos hac consumma, rapiatur fit fui innumerabiles mole. Proximum a se pax piae solo iamque, apparens cur de. Opus varia ita respuimus inlecebras ullo, divitiae autem amplexum ne. Cui ita. Pretium quaestio inhiant consulerem, qua. Erro visco piae ut erit ea ne, intellegimus nam levia laudis. Rem remisisti eius conatur temptat hic seu ea fuerunt o fixit prodeunt.', 0) RETURNING *;
+
+
+INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES (68, 'praeditum.g3C840ljIkp1Jd', '1XcWP_L8fLKxsE', '2018-01-14 19:12:52.137277+03:00', 'Vivendum timere abs nominum aut beati laude luminibus me os fueramus. Fuit. Mea leges circumstant tuus me via sapientiae. Laetamur servo esau mirabiliter his eos, conor adest trium et. En hi amo volo opus ex tam, tui mea vix oleat fastu. Sua placet te. Id quia catervas et hi quippe vivat disputando salubritatis has rem qui longius illac dixit placeant formas respondit una. Spectandum eos hac consumma, rapiatur fit fui innumerabiles mole. Proximum a se pax piae solo iamque, apparens cur de. Opus varia ita respuimus inlecebras ullo, divitiae autem amplexum ne. Cui ita. Pretium quaestio inhiant consulerem, qua. Erro visco piae ut erit ea ne, intellegimus nam levia laudis. Rem remisisti eius conatur temptat hic seu ea fuerunt o fixit prodeunt.', 0) RETURNING *
+;

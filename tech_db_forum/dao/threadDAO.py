@@ -118,7 +118,7 @@ class ThreadDAO:
         for p in posts:
             if p.get("message") is None: p["message"] = ""
             if p.get("parent") is None: p["parent"] = 0
-            values += "({}, (SELECT nickname FROM users WHERE nickname='{}'), '{}', '{}', '{}', {}), ".format(
+            values += "({}, '{}', '{}', '{}', '{}', {}), ".format(
                     thread, p["author"], forum, created_time, p["message"], p["parent"]
                 )
         values = values[:-2]
@@ -159,8 +159,7 @@ class ThreadDAO:
         except ValueError:
             thread = "(SELECT id FROM threads WHERE slug = '{}')".format(slug_or_id)
         try:
-            result = self.db.query("INSERT INTO votes (nickname, voice, thread) SELECT '{}', {}, {} WHERE NOT EXISTS "
-                          "(SELECT id FROM votes WHERE nickname = '{}' AND thread = {} ) RETURNING *".format(
+            result = self.db.query("INSERT INTO votes (nickname, voice, thread) SELECT '{}', {}, {} RETURNING *".format(
                     vote["nickname"], vote["voice"], thread, vote["nickname"], thread)
             )
             if len(result) != 0:
@@ -170,6 +169,8 @@ class ThreadDAO:
             return {"message": "error"}, falcon.HTTP_404
         except postgresql.exceptions.ForeignKeyError:
             return {"message": "error"}, falcon.HTTP_404
+        except postgresql.exceptions.UniqueError:
+            pass
         try:
             result = self.db.query("UPDATE votes SET voice = {} WHERE id=(SELECT id FROM votes WHERE nickname = '{}' "
                           "AND thread = {} ) RETURNING *".format(int(vote["voice"]), vote["nickname"], thread))
@@ -182,23 +183,16 @@ class ThreadDAO:
         return {"message": "error"}, falcon.HTTP_404
 
     def get_thread_by_slug(self, slug):
-        thread = self.db.query("SELECT * FROM threads WHERE slug = '{}'".format(slug))
+        thread = self.db.query("SELECT * FROM threads WHERE slug = '{}' LIMIT 1".format(slug))
         if len(thread) == 0:
             return None
         return self.thread_from_table(thread[0])
 
     def check_thread_id(self, thread_id):
-        thread = self.db.query("SELECT * FROM threads WHERE id = '{}'".format(thread_id))
+        thread = self.db.query("SELECT * FROM threads WHERE id = '{}' LIMIT 1".format(thread_id))
         if len(thread) == 0:
             return None
         return self.thread_from_table(thread[0])
-
-    def get_vote(self, thread_id, nickname):
-        vote = self.db.query("SELECT * FROM votes WHERE thread = {} AND nickname = '{}'".format(thread_id, nickname))
-        if len(vote) == 0:
-            return None
-        return vote
-
 
     @staticmethod
     def vote_from_table(t):
