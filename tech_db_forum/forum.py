@@ -58,7 +58,9 @@ class Threads(object):
         resp_body, resp_status = forum_dao.get_forum_threads(slug, req.get_param("limit"), req.get_param("since"),
                                                              req.get_param("desc"))
         resp.body = json.dumps(resp_body)
+
         resp.status = resp_status
+        #print(resp_status)
 
 
 class Users(object):

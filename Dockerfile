@@ -40,6 +40,7 @@ RUN echo "host  all all ::1/128 trust" >> /etc/postgresql/$PGVER/main/pg_hba.con
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "synchronous_commit=off" >> /etc/postgresql/$PGVER/main/postgresql.conf
 
+
 # Expose the PostgreSQL port
 EXPOSE 5432
 

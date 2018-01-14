@@ -24,7 +24,7 @@ CREATE TABLE users (
 -- ON users USING hash (nickname);
 
 CREATE INDEX idx_nickname_user
-ON users(nickname);
+ON users USING BTREE (nickname);
 
 -- CREATE INDEX idx_email_user
 -- ON users USING hash (email);
@@ -32,7 +32,9 @@ ON users(nickname);
 CREATE TABLE forums (
   slug citext PRIMARY KEY,
   title CHARACTER VARYING,
-  nickname citext NOT NULL
+  nickname citext NOT NULL,
+  posts INTEGER DEFAULT 0,
+  threads INTEGER DEFAULT 0
 );
 
 -- CREATE INDEX idx_slug_hash_forum
@@ -62,7 +64,7 @@ CREATE TABLE forums_users (
 -- ON forums_users  USING hash  (slug) ;
 
 CREATE UNIQUE INDEX idx_forums_users
-ON forums_users(nickname, slug) ;
+ON forums_users(slug, nickname) ;
 
 CREATE TABLE threads (
   nickname citext NOT NULL,
@@ -77,6 +79,7 @@ CREATE TABLE threads (
 
 CREATE FUNCTION create_thread() RETURNS TRIGGER AS $create_thread$
 BEGIN
+  UPDATE forums SET threads = forums.threads + 1 WHERE slug = NEW.forum;
   BEGIN
       INSERT INTO forums_users(slug, nickname) VALUES (NEW.forum, NEW.nickname);
     EXCEPTION
@@ -113,11 +116,12 @@ CREATE TABLE posts (
   message CHARACTER VARYING,
   parent BIGINT DEFAULT 0,
   thread BIGINT NOT NULL,
-  path BIGINT []
+  path BIGINT [],
+  root BIGINT DEFAULT 0
 );
 
 -- CREATE INDEX idx_forum_posts
--- ON posts  USING hash (forum);
+-- ON posts(forum);
 
 -- CREATE INDEX idx_nickname_posts
 -- ON posts  USING hash (nickname);
@@ -129,27 +133,16 @@ CREATE INDEX idx_thread_posts
 ON posts (thread);
 
 CREATE INDEX idx_thread_id_posts
-ON posts (id);
+ON posts (thread, id DESC);
 
-CREATE INDEX idx_patent_posts
-ON posts (parent);
+CREATE INDEX idx_root_posts
+ON posts (root);
 
--- Не точно что работает
--- CREATE INDEX idx_thread_path_posts
--- ON posts USING BTREE (thread,path);
---
--- CREATE INDEX idx_thread_id_posts
--- ON posts USING BTREE (thread,id, created);
+CREATE INDEX idx_thread_parent_posts
+ON posts (thread, parent);
 
--- CREATE INDEX idx_thread_path_id_posts
--- ON posts USING BTREE (thread,path, id);
---
--- CREATE INDEX idx_path_id_posts
--- ON posts USING BTREE (path, id);
-
-CREATE INDEX idx_path_posts
-ON posts USING GIN (path);
-
+CREATE INDEX idx_thread_path_posts
+ON posts (thread, path DESC);
 
 
 CREATE TABLE votes (
@@ -171,23 +164,6 @@ ON votes USING BTREE (nickname, thread) ;
 CREATE UNIQUE INDEX idx_nickname_thread_votes
 ON votes(nickname, thread) ;
 
-CREATE FUNCTION create_path() RETURNS TRIGGER AS $create_path$
-DECLARE
-  old_path BIGINT[];
-  new_path BIGINT[];
-BEGIN
-  IF NEW.parent = 0 THEN
-    UPDATE posts SET path= ARRAY [0, NEW.id] WHERE id=NEW.id;
-  ELSE
-    SELECT path INTO old_path FROM posts WHERE id=NEW.parent;
-    new_path:=array_append(old_path, NEW.id);
-    UPDATE posts SET path=new_path WHERE id=NEW.id;
-  END IF;
-  RETURN NEW;
-END;
-$create_path$ LANGUAGE plpgsql;
-CREATE TRIGGER set_path AFTER INSERT ON posts
-  FOR EACH ROW EXECUTE PROCEDURE create_path();
 
 CREATE FUNCTION add_voice() RETURNS TRIGGER AS $add_voice$
 BEGIN
@@ -214,18 +190,19 @@ DECLARE
 BEGIN
   SELECT nickname INTO nick_name FROM users WHERE nickname=new.nickname;
   NEW.nickname = nick_name;
-  IF NEW.parent = 0::BIGINT THEN
-    BEGIN
-      INSERT INTO forums_users(slug, nickname) VALUES (NEW.forum, NEW.nickname);
-    EXCEPTION
-      WHEN OTHERS THEN NULL ;
-    END;
-    RETURN NEW;
+  IF NEW.parent = 0::BIGINT
+  THEN
+    NEW.path = ARRAY[NEW.id];
+    NEW.root = NEW.id;
+  ELSE
+    SELECT thread INTO partent_thread FROM posts WHERE id=NEW.parent;
+    IF partent_thread != NEW.thread OR partent_thread IS NULL THEN
+      RETURN NULL;
+    END IF;
+    NEW.path = (SELECT p.path || NEW.id FROM posts p WHERE id = NEW.parent);
+    NEW.root = NEW.path[1];
   END IF;
-  SELECT thread INTO partent_thread FROM posts WHERE id=NEW.parent;
-  IF partent_thread != NEW.thread OR partent_thread IS NULL THEN
-    RETURN NULL;
-  END IF;
+
   BEGIN
     INSERT INTO forums_users(slug, nickname) VALUES (NEW.forum, NEW.nickname);
   EXCEPTION

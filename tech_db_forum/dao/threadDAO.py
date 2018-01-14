@@ -72,7 +72,7 @@ class ThreadDAO:
             query = "SELECT * FROM posts WHERE thread={} {} ORDER BY path {}, id {} {}".format(thread, since,
                                                                                                desc, desc, limit)
         elif sort == "parent_tree":
-            query = "SELECT * FROM posts WHERE path[2] IN (SELECT id FROM posts WHERE thread = {} AND parent = 0 ".\
+            query = "SELECT * FROM posts WHERE root IN (SELECT id FROM posts WHERE thread = {} AND parent = 0 ".\
                 format(thread)
             if since is not None:
                 if desc == " DESC":
@@ -123,15 +123,17 @@ class ThreadDAO:
                 )
         values = values[:-2]
         query = "INSERT INTO posts (thread, nickname, forum, created, message, parent) VALUES {} RETURNING *".format(values)
+
         try:
             r = self.db.query(query)
         except postgresql.exceptions.NotNullError:
             return {"message": "User error"}, falcon.HTTP_404
         if len(r) == 0:
             return {"message": "Parent thread error"}, falcon.HTTP_409
-        #print(query)
         for post in r:
             result_posts.append(postDAO.PostDAO.post_from_table(post))
+        self.db.query("UPDATE forums SET posts = posts + {} WHERE slug = '{}';".format(len(result_posts), result_posts[0]["forum"]))
+        #print(len(result_posts), result_posts[0]["forum"])
         return result_posts, falcon.HTTP_201
 
     def edit_thread(self, slug_or_id, thread):

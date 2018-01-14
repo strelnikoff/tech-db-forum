@@ -62,9 +62,10 @@ class ForumDAO:
         return forum_det, falcon.HTTP_200
 
     def get_forum_threads(self, slug, limit, since, desc):
-
+        #print(slug, limit, since, desc)
         query = "SELECT threads.slug, nickname,title, votes, created, message,id, forum, test.slug as test FROM threads "\
                 "RIGHT JOIN (SELECT slug FROM forums WHERE slug='{}') AS test ON forum = '{}'".format(slug, slug)
+
         if since is not None:
             if desc == "true":
                 query = query + " AND created <= '{}'".format(since)
@@ -76,10 +77,11 @@ class ForumDAO:
         if limit is not None:
             query = query + " LIMIT {}".format(limit)
         info = self.db.query(query)
+        #print(query)
         result = []
         if len(info)==0 or info[0]["test"] is None:
             return {"message": "Can't find forum"}, falcon.HTTP_404
-        if info[0]["slug"] is None:
+        if info[0]["id"] is None:
             return result, falcon.HTTP_200
 
         for i in info:
@@ -117,9 +119,7 @@ class ForumDAO:
         return result, falcon.HTTP_200
 
     def forum_info(self, slug):
-        info = self.db.query("SELECT slug, nickname, title, "
-                             "(SELECT COUNT(*) FROM posts WHERE forum ='{}') AS posts, "
-                             "(SELECT COUNT(*) FROM threads WHERE forum ='{}') AS threads FROM forums WHERE slug ='{}';"
+        info = self.db.query("SELECT * FROM forums WHERE slug ='{}';"
                              .format(slug, slug, slug))
         if len(info) == 0:
             return {}
